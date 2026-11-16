@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: wellness-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_password
+      MYSQL_DATABASE: patient_wellness_db
+      MYSQL_USER: wellness_user
+      MYSQL_PASSWORD: wellness_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_secure_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - wellness-network
+
+  wellness-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wellness-backend
+    restart: unless-stopped
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_NAME: patient_wellness_db
+      DB_USERNAME: wellness_user
+      DB_PASSWORD: wellness_pass
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      JWT_EXPIRATION_MS: 86400000
+      LLM_PROVIDER: ${LLM_PROVIDER:-FALLBACK}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_API_URL: ${LLM_API_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - wellness-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  wellness-network:
+    driver: bridge
