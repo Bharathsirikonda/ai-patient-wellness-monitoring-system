@@ -1,18 +1,18 @@
-# Multi-stage Dockerfile for AI-Enabled Patient Wellness Monitoring System
+# Multi-stage Dockerfile for AI-Enabled Patient Wellness Monitoring System Backend
 
-# Stage 1: Build stage
-FROM eclipse-temurin:21-jdk-jammy AS build
+# Stage 1: Build stage with pre-installed Maven & JDK 21
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy Maven descriptor and download dependencies
+# Cache dependencies
 COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source and build executable JAR
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Install maven
-RUN apt-get update && apt-get install -y maven && \
-    mvn clean package -DskipTests
-
-# Stage 2: Runtime stage
+# Stage 2: Minimal, secure runtime stage
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
@@ -29,10 +29,10 @@ USER wellness
 # Expose Spring Boot HTTP port
 EXPOSE 8080
 
-# Environment defaults
+# Environment defaults (defaults to local in-memory profile for instant Render boot)
 ENV PORT=8080 \
-    SPRING_PROFILES_ACTIVE=prod \
-    JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC"
+    SPRING_PROFILES_ACTIVE=local \
+    JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
 
 # Healthcheck definition
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

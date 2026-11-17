@@ -43,3 +43,12 @@ replay_pid*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Frontend & Node
+node_modules/
+dist/
+.vercel
+frontend/node_modules/
+frontend/dist/
+frontend/.vercel
+backend/target/
