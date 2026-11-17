@@ -12,7 +12,8 @@ import {
   Calendar,
   CheckCircle2,
   TrendingUp,
-  FileCode
+  FileCode,
+  Target
 } from 'lucide-react';
 
 export const Dashboard = ({ 
