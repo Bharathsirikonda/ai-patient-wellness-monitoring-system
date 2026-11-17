@@ -5,7 +5,7 @@ import { mockPatients, mockRecords, mockSummary, mockPlans, mockInsights } from 
 export const getApiBaseUrl = () => {
   return localStorage.getItem('wellness_api_base_url') || 
          import.meta.env.VITE_API_BASE_URL || 
-         'http://localhost:8080';
+         'https://ai-patient-wellness-backend.onrender.com';
 };
 
 export const setApiBaseUrl = (url) => {
